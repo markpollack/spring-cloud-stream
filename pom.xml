@@ -35,6 +35,7 @@
 		<module>spring-cloud-stream-configuration-metadata</module>
 	</modules>
 	<dependencyManagement>
+	  <!-- test commit -->
 		<dependencies>
 			<dependency>
 				<groupId>org.springframework.integration</groupId>

@@ -20,7 +20,9 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -36,6 +38,16 @@ import org.springframework.util.CollectionUtils;
  * @author Vinicius Carvalho
  */
 public class BinderMetricsEmitterTests {
+
+	@BeforeClass
+	public static void setSystemProps() {
+		System.setProperty("SPRING_TEST_ENV_SYNTAX","testing");
+	}
+
+	@AfterClass
+	public static void unsetSystemProps() {
+		System.clearProperty("SPRING_TEST_ENV_SYNTAX");
+	}
 
 	@Test(expected = NoSuchBeanDefinitionException.class)
 	public void checkDisabledConfiguration() throws Exception {
@@ -151,7 +163,7 @@ public class BinderMetricsEmitterTests {
 				"--spring.cloud.stream.metrics.delay-millis=500",
 				"--spring.cloud.stream.bindings.streamMetrics.destination=foo",
 				"--spring.cloud.stream.metrics.includes=integration**",
-				"--spring.cloud.stream.metrics.properties=java**");
+				"--spring.cloud.stream.metrics.properties=java**,spring.test.env**");
 		Emitter emitterSource = applicationContext.getBean(Emitter.class);
 		MessageCollector collector = applicationContext.getBean(MessageCollector.class);
 		Message message = collector.forChannel(emitterSource.metrics()).poll(1000, TimeUnit.MILLISECONDS);
@@ -161,6 +173,7 @@ public class BinderMetricsEmitterTests {
 		Assert.assertFalse(contains("mem", applicationMetrics.getMetrics()));
 		Assert.assertTrue(contains("integration.channel.errorChannel.errorRate.mean",applicationMetrics.getMetrics()));
 		Assert.assertFalse(CollectionUtils.isEmpty(applicationMetrics.getProperties()));
+		Assert.assertTrue(applicationMetrics.getProperties().get("spring.test.env.syntax").equals("testing"));
 		applicationContext.close();
 	}
 

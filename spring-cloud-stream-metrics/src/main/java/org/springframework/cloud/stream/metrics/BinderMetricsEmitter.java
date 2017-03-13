@@ -27,6 +27,7 @@ import org.springframework.boot.actuate.endpoint.MetricsEndpoint;
 import org.springframework.boot.actuate.endpoint.MetricsEndpointMetricReader;
 import org.springframework.boot.actuate.metrics.Metric;
 import org.springframework.boot.actuate.metrics.export.MetricCopyExporter;
+import org.springframework.boot.bind.RelaxedNames;
 import org.springframework.cloud.stream.config.BindingServiceProperties;
 import org.springframework.cloud.stream.config.metrics.StreamMetricsProperties;
 import org.springframework.context.ApplicationContext;
@@ -110,8 +111,10 @@ public class BinderMetricsEmitter implements ApplicationListener<ContextRefreshe
 				if (source instanceof EnumerablePropertySource) {
 					EnumerablePropertySource e = (EnumerablePropertySource) source;
 					for (String propertyName : e.getPropertyNames()) {
-						if (isMatch(propertyName, this.properties.getProperties(), null)) {
-							whitelistedProperties.put(propertyName, source.getProperty(propertyName));
+						for (String relaxedPropertyName : new RelaxedNames(propertyName)) {
+							if (isMatch(relaxedPropertyName, this.properties.getProperties(), null)) {
+								whitelistedProperties.put(relaxedPropertyName, source.getProperty(propertyName));
+							}
 						}
 					}
 				}
